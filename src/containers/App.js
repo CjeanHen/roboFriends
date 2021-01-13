@@ -1,35 +1,37 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import CardList from '../components/CardList'
 import SearchBox from '../components/SearchBox'
 import Scroll from '../components/Scroll'
 import ErrorBoundry from '../components/ErrorBoundry'
 import './App.css'
 
-function App() {
-  const [robots, setRobots] = useState([])
-  const [searchField, setSearchField] = useState('')
+import { setSearchField, requestRobots } from '../actions'
+
+function App({ onSearchChange, onRequestRobots, }) {
+
+  const searchField = useSelector(state => state.searchRobots.searchField)
+  const robots = useSelector(state => state.requestRobots.robots)
+  const error = useSelector(state => state.requestRobots.error)
+  const isPending = useSelector(state => state.requestRobots.isPending)
+
+  const dispatch = useDispatch()
 
   useEffect(() => {
-    fetch('https://jsonplaceholder.typicode.com/users')
-      .then(res => res.json())
-      .then(users => setRobots(users))
+    dispatch(requestRobots(dispatch))
   }, [])
-
-  const onSearchChange = (event) => {
-    setSearchField(event.target.value)
-  }
 
   const filteredRobots = robots.filter(robot => {
     return robot.name.toLowerCase().includes(searchField.toLowerCase())
   })
 
-  return !robots.length ?
+  return isPending ?
   <h1>Loading...</h1> :
   (
     <div className='tc'>
       <h1 className='f1'>RoboFriends</h1>
       <SearchBox
-        searchChange={onSearchChange}
+        searchChange={event => dispatch(setSearchField(event.target.value))}
         searchField={searchField}
       />
       <Scroll>
